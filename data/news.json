@@ -1,0 +1,68 @@
+[
+  {
+    "id": "NEWS-1317",
+    "headline": "Dockworker Strike Shuts Down Maritime Terminals at Port of Rotterdam",
+    "content": "A sudden labor dispute and union strike has paralyzed cargo unloading at the Port of Rotterdam. Container dwell times have surged past 14 days, threatening European raw material deliveries.",
+    "target_entity": "Port of Rotterdam",
+    "target_node_id": "PRT-011",
+    "disruption_type": "Labor Strike",
+    "severity_index": 0.85,
+    "estimated_delay_days": 18,
+    "timestamp": "2026-11-10T08:00:00Z"
+  },
+  {
+    "id": "NEWS-9837",
+    "headline": "Super Typhoon In-fa Forces Complete Closure of Port of Shanghai",
+    "content": "Category 4 winds and coastal flooding have prompted port authorities to suspend all vessel berths at the Port of Shanghai. Supply chains dependent on outbound electronics components face immediate freezes.",
+    "target_entity": "Port of Shanghai",
+    "target_node_id": "PRT-012",
+    "disruption_type": "Natural Hazard",
+    "severity_index": 0.92,
+    "estimated_delay_days": 21,
+    "timestamp": "2026-11-10T08:00:00Z"
+  },
+  {
+    "id": "NEWS-1853",
+    "headline": "Power Grid Failure Halts Production at Apex Microelectronics Fab in Shenzhen",
+    "content": "An unexpected thermal power plant shutdown across the industrial zone has suspended cleanroom operations at Apex Microelectronics Fab, constraining microchip wafer supplies for global automakers.",
+    "target_entity": "Apex Microelectronics Fab",
+    "target_node_id": "MFG-021",
+    "disruption_type": "Infrastructure Failure",
+    "severity_index": 0.78,
+    "estimated_delay_days": 14,
+    "timestamp": "2026-11-10T08:00:00Z"
+  },
+  {
+    "id": "NEWS-6733",
+    "headline": "Rail Freight Derailment Bottlenecks North American Heartland Logistics in Chicago",
+    "content": "A major freight train derailment on the Midwest corridor has severed intermodal connectivity into North American Heartland Logistics, causing inter-state distribution delays.",
+    "target_entity": "North American Heartland Logistics",
+    "target_node_id": "DC-033",
+    "disruption_type": "Logistics Route Obstruction",
+    "severity_index": 0.65,
+    "estimated_delay_days": 9,
+    "timestamp": "2026-11-10T08:00:00Z"
+  },
+  {
+    "id": "NEWS-4673",
+    "headline": "Customs Regulatory Overhaul Delays Chemical Shipments at Port of Hamburg",
+    "content": "New European chemical safety verification protocols have created severe container inspection backlogs at the Port of Hamburg, impacting pharmaceutical precursor supplies.",
+    "target_entity": "Port of Hamburg",
+    "target_node_id": "PRT-015",
+    "disruption_type": "Regulatory Compliance",
+    "severity_index": 0.55,
+    "estimated_delay_days": 12,
+    "timestamp": "2026-11-10T08:00:00Z"
+  },
+  {
+    "id": "NEWS-2124",
+    "headline": "Earthquake Aftershocks Trigger Precautionary Shutdown at Nippon Precision Optics",
+    "content": "Following seismic activity in Kanagawa prefecture, safety diagnostics are underway at Nippon Precision Optics, pausing precision optical component assembly for defense and aerospace contractors.",
+    "target_entity": "Nippon Precision Optics",
+    "target_node_id": "MFG-024",
+    "disruption_type": "Natural Hazard",
+    "severity_index": 0.7,
+    "estimated_delay_days": 15,
+    "timestamp": "2026-11-10T08:00:00Z"
+  }
+]
