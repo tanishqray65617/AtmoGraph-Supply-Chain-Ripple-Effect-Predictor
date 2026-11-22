@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import graph, ingest
+from app.api.v1.endpoints import graph, ingest, websocket
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -18,9 +18,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Attach REST Routers
+# Attach REST & WebSocket Routers
 app.include_router(graph.router, prefix=f"{settings.API_V1_STR}", tags=["Graph Topology"])
 app.include_router(ingest.router, prefix=f"{settings.API_V1_STR}", tags=["News Ingestion"])
+app.include_router(websocket.router, tags=["WebSocket Live Telemetry"])
 
 @app.get("/health", tags=["Health"])
 async def health_check():
