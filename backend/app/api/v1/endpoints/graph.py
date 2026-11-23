@@ -50,3 +50,4 @@ async def reset_graph_risks():
         n["current_risk_score"] = n.get("base_risk_score", 0.0)
         n["predicted_delay_days"] = 0.0
     return {"status": "success", "message": "All node risks reset to baseline 0.0"}
+

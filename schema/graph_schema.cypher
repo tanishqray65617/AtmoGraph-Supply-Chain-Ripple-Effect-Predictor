@@ -55,3 +55,4 @@ FOR (n:SupplyNode) ON (n.risk_score);
 //   [:SHIPS_THROUGH {lead_time_days: Int, customs_delay_buffer: Int, active_status: Boolean}]
 //   [:CONNECTS_TO {transit_days: Int, mode: String, capacity_utilization: Float}]
 // ----------------------------------------------------------------------------
+

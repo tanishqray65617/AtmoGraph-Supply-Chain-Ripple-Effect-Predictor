@@ -45,3 +45,4 @@ class NewsIngestResponse(BaseModel):
     disruption_detected: bool
     assessed_risk_score: float
     propagation_summary: Dict[str, Any]
+

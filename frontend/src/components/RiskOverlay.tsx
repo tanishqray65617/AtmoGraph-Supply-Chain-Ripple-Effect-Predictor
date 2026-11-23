@@ -1,17 +1,15 @@
 import React from 'react';
 import { SupplyNode } from '../types/graph';
-import { AlertTriangle, Clock, Layers, MapPin, Zap } from 'lucide-react';
+import { AlertTriangle, Clock, Layers } from 'lucide-react';
 
 interface RiskOverlayProps {
   nodes: SupplyNode[];
-  selectedNode: SupplyNode | null;
-  onSimulateShock: (nodeId: string) => void;
+  selectedNode?: SupplyNode | null;
+  onSimulateShock?: (nodeId: string) => void;
 }
 
 export const RiskOverlay: React.FC<RiskOverlayProps> = ({
-  nodes,
-  selectedNode,
-  onSimulateShock
+  nodes
 }) => {
   const atRiskNodes = nodes.filter(n => (n.current_risk_score || 0) > 0.35);
   const totalDelayHours = atRiskNodes.reduce((acc, curr) => acc + (curr.predicted_delay_days || 0) * 24, 0);
@@ -70,3 +68,4 @@ export const RiskOverlay: React.FC<RiskOverlayProps> = ({
     </div>
   );
 };
+

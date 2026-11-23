@@ -46,3 +46,4 @@ export interface SimulationMetric {
   maxPropagationHops: number;
   vulnerabilityIndex: number;
 }
+

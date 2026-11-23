@@ -119,3 +119,4 @@ class DisruptionEntityExtractor:
 
 # Global singleton extractor instance
 nlp_extractor = DisruptionEntityExtractor()
+

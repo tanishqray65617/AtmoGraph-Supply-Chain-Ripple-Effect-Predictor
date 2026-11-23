@@ -47,6 +47,11 @@ if TORCH_AVAILABLE:
             x = F.relu(x)
             out = self.head(x)
             return out
+else:
+    class AtmoGraphGNN:
+        """Fallback mock class when PyTorch Geometric is not installed in the local environment."""
+        def __init__(self, *args, **kwargs):
+            pass
 
 class RipplePredictor:
     """High-level predictor interface that prepares graph tensors and calculates propagation."""
@@ -117,3 +122,4 @@ class RipplePredictor:
 
 # Global singleton
 ripple_predictor = RipplePredictor()
+

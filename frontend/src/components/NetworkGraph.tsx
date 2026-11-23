@@ -198,12 +198,12 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     // Simulation Tick Updates
     simulation.on('tick', () => {
       link
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
+        .attr('x1', d => d.source.x ?? 0)
+        .attr('y1', d => d.source.y ?? 0)
+        .attr('x2', d => d.target.x ?? 0)
+        .attr('y2', d => d.target.y ?? 0);
 
-      node.attr('transform', d => `translate(${d.x},${d.y})`);
+      node.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`);
     });
 
     return () => {
@@ -217,3 +217,4 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     </div>
   );
 };
+

@@ -26,17 +26,27 @@ export const App: React.FC = () => {
           setEdges(data.edges || []);
         } else {
           const fallbackData = await import('../../data/supply_chain_data.json');
-          setNodes(fallbackData.nodes as SupplyNode[]);
-          setEdges(fallbackData.edges as SupplyEdge[]);
-          setNews(fallbackData.news as NewsIncident[]);
+          const loadedNodes = (fallbackData.nodes as unknown as SupplyNode[]).map(n => ({
+            ...n,
+            current_risk_score: n.current_risk_score ?? n.base_risk_score ?? 0,
+            predicted_delay_days: n.predicted_delay_days ?? 0
+          }));
+          setNodes(loadedNodes);
+          setEdges(fallbackData.edges as unknown as SupplyEdge[]);
+          setNews(fallbackData.news as unknown as NewsIncident[]);
         }
       } catch (err) {
         console.warn('REST graph fetch failed, falling back to local static JSON', err);
         try {
           const fallbackData = await import('../../data/supply_chain_data.json');
-          setNodes(fallbackData.nodes as SupplyNode[]);
-          setEdges(fallbackData.edges as SupplyEdge[]);
-          setNews(fallbackData.news as NewsIncident[]);
+          const loadedNodes = (fallbackData.nodes as unknown as SupplyNode[]).map(n => ({
+            ...n,
+            current_risk_score: n.current_risk_score ?? n.base_risk_score ?? 0,
+            predicted_delay_days: n.predicted_delay_days ?? 0
+          }));
+          setNodes(loadedNodes);
+          setEdges(fallbackData.edges as unknown as SupplyEdge[]);
+          setNews(fallbackData.news as unknown as NewsIncident[]);
         } catch (e) {
           console.error('Failed to load local data fallback:', e);
         }

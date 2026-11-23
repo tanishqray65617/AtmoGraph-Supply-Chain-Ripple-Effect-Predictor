@@ -24,3 +24,4 @@ class Settings(BaseSettings):
         extra = "allow"
 
 settings = Settings()
+

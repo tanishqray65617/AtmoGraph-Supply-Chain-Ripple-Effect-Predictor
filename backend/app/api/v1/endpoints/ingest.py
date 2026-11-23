@@ -47,3 +47,4 @@ async def ingest_news_feed(payload: NewsIngestRequest):
             "estimated_tier1_delay_days": round(severity * 15.0, 1)
         }
     )
+
