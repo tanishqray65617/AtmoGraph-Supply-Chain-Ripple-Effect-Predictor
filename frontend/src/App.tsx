@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, ShieldAlert, Cpu, Globe, Sliders, RefreshCw, ZoomIn, ZoomOut, Play } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Activity, ShieldAlert, Cpu, Globe, Sliders, RefreshCw, Zap, Play, Radio } from 'lucide-react';
 import { SupplyNode, SupplyEdge, NewsIncident } from './types/graph';
 import { NetworkGraph } from './components/NetworkGraph';
+import { RiskOverlay } from './components/RiskOverlay';
 
 export const App: React.FC = () => {
   const [nodes, setNodes] = useState<SupplyNode[]>([]);
@@ -11,8 +12,10 @@ export const App: React.FC = () => {
   const [riskThreshold, setRiskThreshold] = useState<number>(0.3);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeSimulation, setActiveSimulation] = useState<string | null>(null);
+  const [wsConnected, setWsConnected] = useState<boolean>(false);
+  const wsRef = useRef<WebSocket | null>(null);
 
-  // Fetch initial graph topology and news incidents
+  // Setup WebSocket & Initial Data Fetch
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -22,14 +25,13 @@ export const App: React.FC = () => {
           setNodes(data.nodes || []);
           setEdges(data.edges || []);
         } else {
-          // Fallback to static mock if backend is not yet started
           const fallbackData = await import('../../data/supply_chain_data.json');
           setNodes(fallbackData.nodes as SupplyNode[]);
           setEdges(fallbackData.edges as SupplyEdge[]);
           setNews(fallbackData.news as NewsIncident[]);
         }
       } catch (err) {
-        console.warn('API fetch failed, falling back to local dataset', err);
+        console.warn('REST graph fetch failed, falling back to local static JSON', err);
         try {
           const fallbackData = await import('../../data/supply_chain_data.json');
           setNodes(fallbackData.nodes as SupplyNode[]);
@@ -44,10 +46,56 @@ export const App: React.FC = () => {
     };
 
     fetchData();
+
+    // WebSocket Connection
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/risk-stream`;
+    try {
+      const socket = new WebSocket(wsUrl);
+      wsRef.current = socket;
+
+      socket.onopen = () => {
+        setWsConnected(true);
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'INITIAL_GRAPH_STATE' && msg.data) {
+            setNodes(msg.data.nodes || []);
+            setEdges(msg.data.edges || []);
+          } else if (msg.type === 'GRAPH_RISK_UPDATED' && msg.updated_graph) {
+            setNodes(msg.updated_graph.nodes || []);
+            setEdges(msg.updated_graph.edges || []);
+          }
+        } catch (e) {
+          console.error('WebSocket JSON parse error:', e);
+        }
+      };
+
+      socket.onclose = () => setWsConnected(false);
+      socket.onerror = () => setWsConnected(false);
+    } catch (e) {
+      console.warn('WebSocket connection not supported in this context:', e);
+    }
+
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
   }, []);
 
   const handleSimulateDisruption = async (incident: NewsIncident) => {
     setActiveSimulation(incident.headline);
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && incident.target_node_id) {
+      wsRef.current.send(JSON.stringify({
+        action: 'TRIGGER_SHOCK',
+        node_id: incident.target_node_id,
+        severity: incident.severity_index,
+        delay_days: incident.estimated_delay_days
+      }));
+      return;
+    }
+
     try {
       const res = await fetch('/api/v1/ingest', {
         method: 'POST',
@@ -60,7 +108,6 @@ export const App: React.FC = () => {
       });
 
       if (res.ok) {
-        // Refetch updated graph with newly updated risks
         const graphRes = await fetch('/api/v1/graph');
         if (graphRes.ok) {
           const updated = await graphRes.json();
@@ -68,30 +115,36 @@ export const App: React.FC = () => {
           setEdges(updated.edges);
         }
       } else {
-        // Fallback local ripple simulation
-        setNodes(prev => prev.map(n => {
-          if (n.name.toLowerCase().includes(incident.target_entity.toLowerCase())) {
-            return {
-              ...n,
-              current_risk_score: incident.severity_index,
-              predicted_delay_days: incident.estimated_delay_days
-            };
-          }
-          return n;
-        }));
+        triggerLocalRipple(incident);
       }
     } catch (err) {
-      // Local fallback
-      setNodes(prev => prev.map(n => {
-        if (n.name.toLowerCase().includes(incident.target_entity.toLowerCase())) {
-          return {
-            ...n,
-            current_risk_score: incident.severity_index,
-            predicted_delay_days: incident.estimated_delay_days
-          };
-        }
-        return n;
+      triggerLocalRipple(incident);
+    }
+  };
+
+  const triggerLocalRipple = (incident: NewsIncident) => {
+    setNodes(prev => prev.map(n => {
+      if (n.name.toLowerCase().includes(incident.target_entity.toLowerCase())) {
+        return {
+          ...n,
+          current_risk_score: incident.severity_index,
+          predicted_delay_days: incident.estimated_delay_days
+        };
+      }
+      return n;
+    }));
+  };
+
+  const handleManualShock = (nodeId: string) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({
+        action: 'TRIGGER_SHOCK',
+        node_id: nodeId,
+        severity: 0.92,
+        delay_days: 25.0
       }));
+    } else {
+      setNodes(prev => prev.map(n => n.id === nodeId ? { ...n, current_risk_score: 0.92, predicted_delay_days: 25.0 } : n));
     }
   };
 
@@ -128,6 +181,10 @@ export const App: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-6 text-xs text-gray-300">
+          <div className="flex items-center space-x-2">
+            <Radio className={`w-3.5 h-3.5 ${wsConnected ? 'text-emerald-400 animate-pulse' : 'text-gray-500'}`} />
+            <span>WebSocket: {wsConnected ? 'Live' : 'Polling'}</span>
+          </div>
           <div className="flex items-center space-x-2">
             <span className={`w-2 h-2 rounded-full ${highRiskCount > 0 ? 'bg-red-500 animate-ping' : 'bg-emerald-500'}`} />
             <span>High Risk Nodes: {highRiskCount}</span>
@@ -181,7 +238,7 @@ export const App: React.FC = () => {
                 <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{incident.content}</p>
                 <div className="mt-2.5 flex items-center justify-between text-[10px] text-gray-400 border-t border-gray-800 pt-2">
                   <span className="font-mono text-red-400">Severity: {(incident.severity_index * 100).toFixed(0)}%</span>
-                  <span className="text-blue-400 flex items-center gap-1">
+                  <span className="text-blue-400 flex items-center gap-1 font-medium">
                     <Play className="w-3 h-3 fill-current" /> Inject Shock
                   </span>
                 </div>
@@ -235,6 +292,13 @@ export const App: React.FC = () => {
               riskThreshold={riskThreshold}
             />
           )}
+
+          {/* Floating Live Risk Metrics Overlay */}
+          <RiskOverlay
+            nodes={nodes}
+            selectedNode={selectedNode}
+            onSimulateShock={handleManualShock}
+          />
         </main>
 
         {/* Right Flyout Inspector */}
@@ -279,13 +343,11 @@ export const App: React.FC = () => {
               {/* Action Trigger */}
               <div className="pt-2">
                 <button
-                  onClick={() => {
-                    setNodes(prev => prev.map(n => n.id === selectedNode.id ? { ...n, current_risk_score: 0.9, predicted_delay_days: 22 } : n));
-                    setSelectedNode(prev => prev ? { ...prev, current_risk_score: 0.9, predicted_delay_days: 22 } : null);
-                  }}
-                  className="w-full py-2 px-3 rounded-lg bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30 font-medium text-xs transition"
+                  onClick={() => handleManualShock(selectedNode.id)}
+                  className="w-full py-2.5 px-3 rounded-lg bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30 font-medium text-xs transition flex items-center justify-center gap-1.5"
                 >
-                  Manually Disrupt Node
+                  <Zap className="w-4 h-4 text-red-400" />
+                  Trigger Shock & Propagate
                 </button>
               </div>
             </div>
